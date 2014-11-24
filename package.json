@@ -1,0 +1,19 @@
+{
+  "name": "android-api",
+  "version": "0.0.1",
+  "description": "A Node interface for some Android and ADB commands",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://korcholis@bitbucket.org/Korcholis/android-api.git"
+  },
+  "keywords": [
+    "android",
+    "adb"
+  ],
+  "author": "Sergi Juanola <korcholis@gmail.com>",
+  "license": "ISC"
+}
