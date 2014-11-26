@@ -35,12 +35,12 @@ module.exports = {
   logcat : function(devices) {
     devices = this._devices_from_var(devices);
   },
-  _devices_from_var(devices) {
+  _devices_from_var : function(devices) {
     if ("undefined" === typeof devices) {
       devices = [this.get_main_device()];
-    } else if (devices.constructor === Array) {
+    } else if (Array === devices.constructor) {
       // check all of them are available
-    } else if (devices instanceof String) {
+    } else if ("string" === typeof devices) {
       if ("first" === devices || "1" == devices || "main" == devices) {
         devices = [this.get_main_device()];
       } else if ("all" === devices || "*" === devices) {
