@@ -1,52 +1,55 @@
 var sys = require('sys');
 var exec = require('child_process').exec;
 
-exports.init = function() {
-  exec("adb help", function(error, stdout, stderr) {
-    if (error) {
-      console.error("ADB is not accessible via command!");
-      process.exit();
+module.exports = {
+  init : function() {
+    exec("adb help", function(error, stdout, stderr) {
+      if (error) {
+        console.error("You need to first add adb and android commands to the path.");
+        process.exit();
+      }
+    });
+  },
+  create : function(app_name, package_name, path, min_version, compile_version) {
+
+  },
+  update : function(path) {
+
+  },
+  compile : function(path, flags) {
+
+  },
+  install : function(apk, devices) {
+    devices = this._devices_from_var(devices);
+
+    for (var i = 0; i < devices.length; i++) {
+      devices[i]
     }
-  });
-}
+  },
+  get_main_device : function() {
 
-exports.create = function(app_name, package_name, path, min_version, compile_version) {
+  },
+  get_all_devices : function() {
 
-}
-
-exports.update = function(path) {
-
-}
-
-exports.compile = function(path, flags) {
-
-}
-
-exports.install = function(apk, devices) {
-  if ("undefined" === typeof devices) {
-    devices = [exports.get_main_device()];
-  } else if (devices.constructor === Array) {
-    // check all of them are available
-  } else if (devices instanceof String) {
-    if ("first" === devices || "1" == devices || "main" == devices) {
-      devices = [exports.get_main_device()];
-    } else if ("all" === devices || "*" === devices) {
-      devices = exports.get_all_devices();
-    } else {
-      console.error("devices contains no valid items. It should include a list of device IDs, or any of the wildcards first, 1, main, all or *");
-      process.exit();
+  },
+  logcat : function(devices) {
+    devices = this._devices_from_var(devices);
+  },
+  _devices_from_var(devices) {
+    if ("undefined" === typeof devices) {
+      devices = [this.get_main_device()];
+    } else if (devices.constructor === Array) {
+      // check all of them are available
+    } else if (devices instanceof String) {
+      if ("first" === devices || "1" == devices || "main" == devices) {
+        devices = [this.get_main_device()];
+      } else if ("all" === devices || "*" === devices) {
+        devices = this.get_all_devices();
+      } else {
+        console.error("devices contains no valid items. It should include a list of device IDs, or any of the wildcards first, 1, main, all or *");
+        process.exit();
+      }
     }
+    return devices;
   }
-
-  for (var i = 0; i < devices.length; i++) {
-    devices[i]
-  }
-}
-
-exports.get_main_device = function() {
-
-}
-
-export.get_all_devices = function() {
-
 }
