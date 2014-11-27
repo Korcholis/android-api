@@ -1,36 +1,49 @@
 var sys = require('sys');
 var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
+var pass = require('stream').PassThrough;
 
 module.exports = {
-  init : function() {
+
+  project_path : '',
+
+  init : function(config) {
+    config = config || {};
     exec("adb start-server", function(error, stdout, stderr) {
-      if (error) {
-        console.error("You need to first add adb and android commands to the path.");
-        process.exit();
+      if (error instanceof Error) {
+        throw error;
       } else {
         console.log(stdout);
       }
     });
   },
+
   create : function(app_name, package_name, path, min_version, compile_version) {
 
   },
+
   update : function(path) {
 
   },
+
   compile : function(path, flags) {
 
   },
+
   install : function(apk, devices_to_use) {
     this._devices_from_var(devices_to_use, function(devices) {
       for (var i = 0; i < devices.length; i++) {
         console.log('Installing apk ' + apk + ' in device ' + devices[i]);
-        exec("adb install -rtd " + apk + " -s " + devices[i]);
+        exec("adb -s " + devices[i] + " install -rtd " + apk);
       }
     });
   },
+
   get_main_device : function(callback) {
     exec("adb devices", function(error, stdout, stderr) {
+      if (error instanceof Error) {
+        throw error;
+      }
       var findDeviceId = /\n([\d\w\.\:]+)\s+/m;
       var match = findDeviceId.exec(stdout);
       if (match != null) {
@@ -40,8 +53,12 @@ module.exports = {
       }
     });
   },
+
   get_all_devices : function(callback) {
     exec("adb devices", function(error, stdout, stderr) {
+      if (error instanceof Error) {
+        throw error;
+      }
       var findDeviceId = /\n([\d\w\.\:]+)\s+/m;
       var match = findDeviceId.exec(stdout);
       if (match != null) {
@@ -52,13 +69,17 @@ module.exports = {
       }
     });
   },
-  logcat : function(devices_to_use) {
-    this._devices_from_var(devices_to_use, function(devices) {
-      for (var i = 0; i < devices.length; i++) {
-        console.log('Logging device ' + devices[i]);
-      }
+
+  logcat : function() {
+    var logcat_output = new pass;
+    this._devices_from_var(function(device) {
+      device = device[0];
+      var logcat_input = spawn("adb", ["-s " + device + " logcat -v long"])
+      logcat_input.stdout.pipe(logcat_output);
     });
+    return logcat_output;
   },
+
   _devices_from_var : function(devices_to_use, callback) {
     if ("undefined" === typeof devices_to_use) {
       this.get_main_device(function(device_found) {
@@ -90,5 +111,3 @@ module.exports = {
     }
   }
 }
-
-module.exports.init();
