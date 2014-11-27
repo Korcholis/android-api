@@ -1,7 +1,6 @@
 var sys = require('sys');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
-var pass = require('stream').PassThrough;
 
 module.exports = {
 
@@ -70,14 +69,28 @@ module.exports = {
     });
   },
 
-  logcat : function() {
-    var logcat_output = new pass;
-    this._devices_from_var(function(device) {
+  logcat : function(device, callback) {
+    this._devices_from_var(device, function(device) {
       device = device[0];
-      var logcat_input = spawn("adb", ["-s " + device + " logcat -v long"])
-      logcat_input.stdout.pipe(logcat_output);
+      var logcat_input = spawn("adb", ["-s", device, "logcat", "-v", "long"], {});
+      logcat_input.stdout.on('data', function(data) {
+        callback(""+data);
+      });
+
+      logcat_input.stderr.on('data', function(data) {
+        throw new Error(""+data);
+      });
+
+      logcat_input.on('end', function(data) {
+        console.log("Logcat was closed");
+      });
+
+      logcat_input.on('exit', function(code) {
+        if (code != 0) {
+          console.log('Failed: ' + code);
+        }
+      });
     });
-    return logcat_output;
   },
 
   _devices_from_var : function(devices_to_use, callback) {
