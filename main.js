@@ -6,6 +6,8 @@ module.exports = {
 
   project_path : '',
 
+  logcat_regex : /\[\s+(\d{1,2}\-\d{1,2})\s+(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)\s*:\s*(\d+)\s+([DIVW])\/(.*)\s+\]\s+(.*)/g,
+
   init : function(config) {
     config = config || {};
     exec("adb start-server", function(error, stdout, stderr) {
@@ -69,12 +71,26 @@ module.exports = {
     });
   },
 
-  logcat : function(device, callback) {
+  logcat : function(device, callback, options) {
+    options = options||{ output : 'long' };
+    var android = this;
     this._devices_from_var(device, function(device) {
       device = device[0];
-      var logcat_input = spawn("adb", ["-s", device, "logcat", "-v", "long"], {});
+      var turn_json = false;
+      if ('json' == options.output) {
+        options.output = 'long';
+        turn_json = true;
+      }
+      var logcat_input = spawn("adb", ["-s", device, "logcat", "-v", options.output], {});
       logcat_input.stdout.on('data', function(data) {
-        callback(""+data);
+        if (turn_json) {
+          var json_content = android._convert_to_json(data);
+          if (json_content) {
+            callback(json_content);
+          }
+        } else {
+          callback(""+data);
+        }
       });
 
       logcat_input.stderr.on('data', function(data) {
@@ -122,5 +138,22 @@ module.exports = {
         callback(devices_to_use);
       });
     }
+  },
+
+  _convert_to_json : function(data) {
+    data = "" + data;
+    var results = this.logcat_regex.exec(data);
+    if (!results) {
+      return null;
+    }
+    return {
+      date : results[1],
+      timestamp : results[2],
+      pid : results[3],
+      tid : results[4],
+      type : results[5],
+      tag : results[6],
+      message : results[7]
+    };
   }
 }
