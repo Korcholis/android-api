@@ -6,7 +6,7 @@ module.exports = {
 
   project_path : '',
 
-  logcat_regex : /\[\s+(\d{1,2}\-\d{1,2})\s+(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)\s*:\s*(\d+)\s+([DIVW])\/(.*)\s+\]\s+(.*)/g,
+  logcat_regex : /\[\s+(\d{1,2}\-\d{1,2})\s+(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)\s*:\s*(\d+)\s+([VDIWEFS])\/(.*)\s+\]\s+(.*)/g,
 
   init : function(config) {
     config = config || {};
@@ -151,7 +151,7 @@ module.exports = {
       timestamp : results[2],
       pid : results[3],
       tid : results[4],
-      type : results[5],
+      level : results[5],
       tag : results[6],
       message : results[7]
     };
