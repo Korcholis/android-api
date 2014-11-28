@@ -4,8 +4,6 @@ var spawn = require('child_process').spawn;
 
 module.exports = {
 
-  project_path : '',
-
   logcat_regex : /\[\s+(\d{1,2}\-\d{1,2})\s+(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)\s*:\s*(\d+)\s+([VDIWEFS])\/(.*)\s+\]\s+(.*)/g,
 
   init : function(config) {
@@ -19,7 +17,7 @@ module.exports = {
     });
   },
 
-  create : function(app_name, package_name, path, min_version, compile_version) {
+  create : function(app_name, package_name, path, min_version, compile_version, options) {
 
   },
 
@@ -72,7 +70,7 @@ module.exports = {
   },
 
   logcat : function(device, callback, options) {
-    options = options||{ output : 'long' };
+    options = options||{ output : 'long', filters : []};
     var android = this;
     this._devices_from_var(device, function(device) {
       device = device[0];
