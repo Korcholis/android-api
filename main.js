@@ -275,6 +275,7 @@ module.exports = {
           callback(device_found);
         });
       } else if (["all", "*"].indexOf(devices_to_use) !== -1) {
+        this.get_all_devices(function(device_found) {
           callback(devices_found);
         });
       } else {
