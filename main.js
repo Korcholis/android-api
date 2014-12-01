@@ -240,17 +240,11 @@ module.exports = {
         callback(device_found);
       });
     } else if ("string" === typeof devices_to_use) {
-      if (
-        "first" === devices_to_use
-        || "1" == devices_to_use
-        || "main" == devices_to_use) {
+      if (["first", "1", "main"].indexOf(devices_to_use) !== -1) {
         this.get_main_device(function(device_found) {
           callback(device_found);
         });
-      } else if (
-        "all" === devices_to_use
-        || "*" === devices_to_use) {
-        this.get_all_devices(function(devices_found) {
+      } else if (["all", "*"].indexOf(devices_to_use) !== -1) {
           callback(devices_found);
         });
       } else {
