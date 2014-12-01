@@ -14,6 +14,11 @@
  * THIS SOFTWARE.
 */
 
+/**
+ * A module to connect to the ADB server and Android command line
+ * @module android-api
+ */
+
 var sys = require('sys');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;

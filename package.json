@@ -4,7 +4,8 @@
   "description": "A Node interface for some Android and ADB commands",
   "main": "main.js",
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "doc": "jsdoc . -d ./docs/"
   },
   "repository": {
     "type": "git",
@@ -18,6 +19,7 @@
   "license": "ISC",
   "devDependencies": {
     "chai": "^1.10.0",
-    "mocha": "^2.0.1"
+    "mocha": "^2.0.1",
+    "jsdoc": "3.3.x"
   }
 }
