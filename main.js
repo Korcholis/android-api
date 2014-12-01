@@ -158,7 +158,7 @@ module.exports = {
    * @param {callback} on_receive_cb - Callback which is called when a new
    *                                   logcat message is outputted. This
    *                                   callback takes one parameter, a
-   *                                   {string|object} logcat message.
+   *                                   {string | object} logcat message.
    * @param {callback} on_end_cb - Callback called when the logcat is cancelled.
    *                               It takes no parameters.
    * @param {object} options - An object with configurations for logcat. Its
@@ -234,6 +234,36 @@ module.exports = {
     });
   },
 
+  /**
+   * Take a text or array and convert it to a list of device ids matching the
+   * desired wildcards.
+   * @param {string | array} devices_to_use - Either an array or a wildcard. If
+   *                                          it contains an array, it should
+   *                                          have a list of device ids to parse
+   *                                          rom the adb devices command. You
+   *                                          don't need to have all of them
+   *                                          connected, only, since this call
+   *                                          will take out the ones not
+   *                                          connected, and return a list of
+   *                                          all the available devices. If you
+   *                                          pass a wildcard, it will translate
+   *                                          into a list of ids that match the
+   *                                          wildcard. These are:
+   *                                          - "first", "main" or "1": return
+   *                                            the first device available,
+   *                                            which turns to be named "main"
+   *                                            by the Android SDK.
+   *                                          - "all" or "*": return a list of
+   *                                            all the devices connected at the
+   *                                            time.
+   * @param {callback} callback - The function that will be called when the
+   *                              process has been done. It takes one parameter,
+   *                              {array} devices_found, which can be empty if
+   *                              no device matches the list or wildcard, or a
+   *                              list of devices (even one) that meet the
+   *                              criteria. Notice that even if you are asking
+   *                              for the main device, a list is returned.
+   */
   _devices_from_var : function(devices_to_use, callback) {
     if ("undefined" === typeof devices_to_use) {
       this.get_main_device(function(device_found) {
@@ -264,6 +294,12 @@ module.exports = {
     }
   },
 
+  /**
+   * Take a logcat long data row and convert it into a JSON. This is useful to
+   * avoid having to parse it manually.
+   * @param {string} data - A line of logcat data
+   * @return {object} - A parsed JSON object, or null if not parseable.
+   */
   _convert_to_json : function(data) {
     data = "" + data;
     var results = this.logcat_regex.exec(data);
