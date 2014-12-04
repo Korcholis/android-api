@@ -18,7 +18,7 @@
   "author": "Sergi Juanola <korcholis@gmail.com>",
   "license": "ISC",
   "dependencies": {
-    "q": "2.1.0"
+    "q": "2.0.2"
   },
   "devDependencies": {
     "jsdoc": "3.3.0-alpha9"

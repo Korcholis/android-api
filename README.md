@@ -22,7 +22,7 @@ The whole library is JSdoc compliant. If you clone the package, you can run:
     npm run-script docs
 
 Inside the package folder, and it will create all the documentation structure
-inside `./docs/`
+into `./docs/`. You can change the path to where it is stored by modifying the `package.json` file.
 
 ##License
 
