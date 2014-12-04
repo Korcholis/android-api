@@ -17,9 +17,10 @@
   ],
   "author": "Sergi Juanola <korcholis@gmail.com>",
   "license": "ISC",
+  "dependencies": {
+    "q": "2.1.0"
+  },
   "devDependencies": {
-    "chai": "^1.10.0",
-    "mocha": "^2.0.1",
-    "jsdoc": "3.3.x"
+    "jsdoc": "3.3.0-alpha9"
   }
 }
