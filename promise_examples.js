@@ -1,4 +1,4 @@
-android = require('./main.js');
+android = require('./android_api.js');
 
 var path = /* /root/path/to/project */;
 var flags = {

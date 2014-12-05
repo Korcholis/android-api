@@ -2,7 +2,7 @@
   "name": "android-api",
   "version": "0.0.1",
   "description": "A Node interface for some Android and ADB commands",
-  "main": "main.js",
+  "main": "android_api.js",
   "scripts": {
     "docs": "jsdoc -d ./docs/ ."
   },

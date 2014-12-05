@@ -1,4 +1,4 @@
-android = require('./main.js');
+android = require('./android_api.js');
 android.init(function(error) {
   if (error instanceof Error) {
     throw error;
