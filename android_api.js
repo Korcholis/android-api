@@ -348,7 +348,7 @@ return {
     * Take a device and return a stream of its logcat output. It returns a
     * promise the developer can check for any new logcat message. In this case a
     * resolved promise doesn't contain the logcat output, since it's an ongoing
-    * process. Instead, look at the <code>progress</code> method to receive new
+    * process. Instead, look at the <code>on_log</code> method to receive new
     * logcat outputs for this device. The <code>then</code> method is
     * <b>only</b> called on logcat termination.
     *
@@ -360,11 +360,9 @@ return {
     * @param {array | string} device - An array with a single device name or a
     * wildcard to fetch devices. In case it is a wildcard, the main device will
     * be taken anyway.
-    * @param {callback} on_receive_cb - Callback which is called when a new
-    * logcat message is outputted. This callback takes one parameter, a
+    * @param {callback} on_log - Callback which is called when a new logcat
+    * message is outputted. This callback takes one parameter, a
     * <code>string | object</code> logcat message.
-    * @param {callback} on_end_cb - Callback called when the logcat is cancelled.
-    * It takes no parameters.
     * @param {object} options - An object with configurations for logcat. Its
     * properties are:
     *  <ul><li><code>string</code> output. The kind of output format you want for
@@ -375,7 +373,7 @@ return {
     *  <li><code>array</code> filters. Any filter you want to apply to this
     *  logcat output.</li></ul>
     */
-    logcat : function(device, options) {
+    logcat : function(device, options, on_log) {
       var deferred = q.defer();
 
       options = options || { output : 'long', filters : []};
@@ -401,10 +399,10 @@ return {
             if (turn_json) {
               var json_content = convert_to_json(data);
               if (json_content) {
-                deferred.notify(json_content);
+                on_log(json_content);
               }
             } else {
-              deferred.notify(""+data);
+              on_log(""+data);
             }
           });
 
@@ -428,13 +426,17 @@ return {
     * be taken anyway.
     */
     shutdown_logcat : function(device) {
-      devices_from_var(device, function(device) {
-        device = device[0];
-        if (android_api.logcat_spawns[device]) {
-          android_api.logcat_spawns[device].kill();
-          delete android_api.logcat_spawns[device];
-        }
-      });
+      var deferred = q.defer();
+      devices_from_var(device)
+        .then(function(device) {
+          device = device[0];
+          if (android_api.logcat_spawns[device]) {
+            android_api.logcat_spawns[device].kill();
+            delete android_api.logcat_spawns[device];
+            deferred.resolve(device);
+          }
+        });
+      return deferred.promise;
     }
   }
 })();

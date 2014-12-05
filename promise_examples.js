@@ -15,20 +15,26 @@ android.init() // ensure the adb service is available and started
     console.log("Look, it's done! " + apk);
   })
   .then(function() {
-    android.logcat(
+    var promise = android.logcat(
       "1",
-      { output : 'json' }
-    )
-      .progress(function(logcat_data) {
+      { output : 'json' },
+      function(logcat_data) {
         console.log(logcat_data);
+      })
+      .then(function() {
+        console.log('logcat finished');
       })
       .catch(function(err) {
         console.log('logcat error ' + err);
       });
 
     setTimeout(function() {
-      android.shutdown_logcat("1");
+      android.shutdown_logcat("1")
+        .then(function(device_id) {
+          console.log('shutdown of ' + device_id);
+        })
     }, 5000);
+    return promise;
   })
   .catch(function(err) { // catch any error during the procedure
     console.error(err);
