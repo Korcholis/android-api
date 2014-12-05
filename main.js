@@ -24,13 +24,18 @@ var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 var path_utils = require('path');
 var fs = require('fs');
+var q = require('q');
 
 android_api = module.exports = (function() {
 
 
   /**
   * Take a text or array and convert it to a list of device ids matching the
-  * desired wildcards.
+  * desired wildcards. Upon resolve, the promise takes one parameter,
+  * <code>array</code> devices_found, which can be empty if no device matches
+  * the list or wildcard, or a list of devices (even one) that meet the
+  * criteria. Notice that even if you are asking for the main device, a list is
+  * returned.
   *
   * @param {string | array} devices_to_use - Either an array or a wildcard. If
   * it contains an array, it should have a list of device ids to parse rom the
@@ -42,41 +47,43 @@ android_api = module.exports = (function() {
   *  turns to be named "main" by the Android SDK.</li>
   *  <li><code>'all'</code> or <code>'*'</code>: return a list of all the
   *  devices connected at the time.</li></ul>
-  * @param {callback} callback - The function that will be called when the
-  * process has been done. It takes one parameter, <code>array</code>
-  * devices_found, which can be empty if no device matches the list or
-  * wildcard, or a list of devices (even one) that meet the criteria. Notice
-  * that even if you are asking for the main device, a list is returned.
+  *
+  * @return {promise} A promise for this method
   */
-  function devices_from_var(devices_to_use, callback) {
+  function devices_from_var(devices_to_use) {
+    var deferred = q.defer();
     if ("undefined" === typeof devices_to_use) {
-      android_api.get_main_device(function(device_found) {
-        callback(device_found);
-      });
+      android_api.get_main_device()
+        .then(function(device_found) {
+          deferred.resolve(device_found);
+        });
     } else if ("string" === typeof devices_to_use) {
       if (["first", "1", "main"].indexOf(devices_to_use) !== -1) {
-        android_api.get_main_device(function(device_found) {
-          callback(device_found);
-        });
+        android_api.get_main_device()
+          .then(function(device_found) {
+            deferred.resolve(device_found);
+          });
       } else if (["all", "*"].indexOf(devices_to_use) !== -1) {
-        android_api.get_all_devices(function(device_found) {
-          callback(devices_found);
-        });
+        android_api.get_all_devices()
+          .then(function(device_found) {
+            deferred.resolve(device_found);
+          });
       } else {
-        console.error("devices contains no valid items. It should include a list of device IDs, or any of the wildcards first, 1, main, all or *");
+        throw new Error("devices array contains no valid items. It should include a list of device IDs, or any of the wildcards first, 1, main, all or *");
         process.exit();
       }
     } else if (Array === devices_to_use.constructor) {
-      android_api.get_all_devices(function(devices_found) {
+      android_api.get_all_devices().then(function(devices_found) {
 
         for(var i = devices_to_use.length - 1; i >= 0; i--) {
           if(devices_found.indexOf(devices_to_use[i]) == -1) {
             devices_to_use.splice(i, 1);
           }
         }
-        callback(devices_to_use);
+        deferred.resolve(devices_to_use);
       });
     }
+    return deferred.promise;
   }
 
   /**
@@ -103,37 +110,47 @@ android_api = module.exports = (function() {
     };
   }
 
-  function compile_gradle(path, callback, flags) {
+  function compile_gradle(path, flags) {
 
   }
 
   /**
   * Compile a project based on the ant system. The params are the same as
-  * <code>compile</code
+  * <code>compile</code>
+  *
+  * @param {string} path - See <code>compile</code>
+  * @param {object} flags - See <code>compile</code>
+  *
+  * @return {promise} A promise for this method
   */
-  function compile_ant(path, callback, flags) {
+  function compile_ant(path, flags) {
+    var deferred = q.defer();
     if (['debug', 'release', 'instrument'].indexOf(flags.compile_type) !== -1) {
       if (true == flags.clean_first) {
         exec("ant clean", { cwd : path }, function(error, stdout, stderr) {
           if (error instanceof Error) {
-            throw error;
+            deferred.reject(error);
+          } else {
+            exec("ant " + flags.compile_type, { cwd : path }, function(error, stdout, stderr) {
+              if (error instanceof Error) {
+                deferred.reject(error);
+              } else {
+                deferred.resolve(return_apk(path));
+              }
+            });
           }
-          exec("ant " + flags.compile_type, { cwd : path }, function(error, stdout, stderr) {
-            if (error instanceof Error) {
-              throw error;
-            }
-            callback(return_apk(path));
-          });
         });
       } else {
         exec("ant " + flags.compile_type, { cwd : path }, function(error, stdout, stderr) {
           if (error instanceof Error) {
-            throw error;
+            deferred.reject(error);
+          } else {
+            deferred.resolve(return_apk(path));
           }
-          callback(return_apk(path));
         });
       }
     }
+    return deferred.promise;
   }
 
   /**
@@ -176,23 +193,21 @@ return {
   * Here you also have a chance to set any configuration for the module.
   *
   * @param {object} config - Include a config to this module. The currently
-  * available parameters to config are:
-  *  <ul><li><code>boolean</code> gentle. Exit the process on error if false,
-  *  or pass the error to the callback on true. Defaults to true.</li></ul>
-  * @param {callback} callback - Pass on a callback to know when the
-  * adb server is started, or if it had an error. It takes one parameter,
-  * containing an <code>Error</code> error or null, if no error occured.
+  * available parameters to config are none.
+  *
+  * @return {promise} A promise for this method
   */
-  init : function(callback, config) {
+  init : function(config) {
     config = config || { gentle : true };
+    var deferred = q.defer();
     exec("adb start-server", function(error, stdout, stderr) {
-      if (true !== config.gentle && error instanceof Error) {
-        throw error;
-      }
-      if (callback) {
-        callback(error);
+      if (error instanceof Error) {
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
       }
     });
+    return deferred.promise;
   },
 
   /**
@@ -216,12 +231,11 @@ return {
     },
 
     /**
-    * Take a project and compile it with some specific configurations
+    * Take a project and compile it with some specific configurations. When the
+    * promise is fullfilled, it takes one parameter, <code>string</code> apk,
+    * which contains the path to the compiled apk, or null if it wasn't found.
     *
     * @param {string} path - The root directory of the project
-    * @param {callback} callback - The callback for when a compilation is done.
-    * It takes one parameter, <code>string</code> apk, which contains the path to the
-    * compiled apk, or null if it wasn't found.
     * @param {object} flags - Optional list of flags to determine what to do in
     * this compilation. The params are:
     *  <ul><li><code>string</code> project_type. What kind of project we have to
@@ -242,8 +256,10 @@ return {
     *  <li>{boolean} clean_first. Set this to true to clean. The project before
     *  compiling. This ensures there are no old resources left. Defaults to
     *  false.</li></ul>
+    *
+    * @return {promise} A promise for this method
     */
-    compile : function(path, callback, flags) {
+    compile : function(path, flags) {
       flags = flags || {
         project_type : 'gradle',
         compile_type : 'debug',
@@ -251,16 +267,18 @@ return {
       };
 
       if ('gradle' == flags.project_type) {
-        compile_gradle(path, callback, flags);
+        return compile_gradle(path, flags);
       } else if(['ant', 'eclipse'].indexOf(flags.project_type) !== -1) {
-        compile_ant(path, callback, flags);
+        return compile_ant(path, flags);
+      } else {
+        throw new Error('Project type "' + flags.project_type + '" doesn\'t exist. Try "ant" or "gradle".');
       }
+      return promise;
     },
 
     install : function(apk, devices_to_use) {
       devices_from_var(devices_to_use, function(devices) {
         for (var i = 0; i < devices.length; i++) {
-          console.log('Installing apk ' + apk + ' in device ' + devices[i]);
           exec("adb -s " + devices[i] + " install -rtd " + apk);
         }
       });
@@ -268,53 +286,63 @@ return {
 
     /**
     * Get the main device currently connected to ADB. It states device, but it
-    * may actually be an emulator already running.
+    * may actually be an emulator already running. When the device is found or
+    * not and the promise resolves, it returns the main device connected, if
+    * any. The callback takes one parameter, being an <code>array</code> device,
+    * with one single <code>string</code> device_id, or none, if no devices or
+    * emulators attached.
     *
-    * @param {callback} callback - The callback returning the main device
-    * connected, if any. The callback takes one parameter, being an
-    * <code>array</code> device, with one single <code>string</code> device_id,
-    * or none, if no devices or emulators attached.
+    * @return {promise} A promise for this method
     */
-    get_main_device : function(callback) {
+    get_main_device : function() {
+      var deferred = q.defer();
+
       exec("adb devices", function(error, stdout, stderr) {
         if (error instanceof Error) {
-          throw error;
-        }
-        var findDeviceId = /\n([\d\w\.\:]+)\s+/m;
-        var match = findDeviceId.exec(stdout);
-        if (match != null) {
-          callback([match[1]]);
+          deferred.reject(error);
         } else {
-          callback([]);
+          var findDeviceId = /\n([\d\w\.\:]+)\s+/m;
+          var match = findDeviceId.exec(stdout);
+          if (match != null) {
+            deferred.resolve([match[1]]);
+          } else {
+            deferred.resolve([]);
+          }
         }
       });
+      return deferred.promise;
     },
 
     /**
     * Retrieve the list of all the devices connected to ADB. It states devices,
-    * but they may actually be emulators already running.
+    * but they may actually be emulators already running. When the promise is
+    * fullfilled or rejected, itreturns the devices connected if any. The
+    * callback takes one parameter, being <code>array</code> devices, which
+    * contains a list of <code>string</code> device_ids, or none, if no devices
+    * or emulators attached.
     *
-    * @param {callback} callback - The callback returning the devices connected
-    * if any. The callback takes one parameter, being <code>array</code> devices,
-    * which contains a list of <code>string</code> device_ids, or none, if no
-    * devices or emulators attached.
+    * @return {promise} A promise for this method
     */
     get_all_devices : function(callback) {
+      var deferred = q.defer();
       exec("adb devices", function(error, stdout, stderr) {
         if (error instanceof Error) {
-          throw error;
-        }
-        var findDeviceId = /\n([\d\w\.\:]+)\s+/gm;
-        var match = findDeviceId.exec(stdout);
-        if (match != null) {
-          match.shift();
-          delete match.index;
-          delete match.input;
-          callback(match);
+          deferred.reject(error);
         } else {
-          callback([]);
+          var findDeviceId = /\n([\d\w\.\:]+)\s+/gm;
+          var match = findDeviceId.exec(stdout);
+          if (match != null) {
+            match.shift();
+            delete match.index;
+            delete match.input;
+            deferred.resolve(match);
+          } else {
+            deferred.resolve([]);
+          }
         }
       });
+
+      return deferred.promise;
     },
 
     /**
