@@ -14,6 +14,22 @@ android.init() // ensure the adb service is available and started
   .then(function(apk) {
     console.log("Look, it's done! " + apk);
   })
+  .then(function() {
+    android.logcat(
+      "1",
+      { output : 'json' }
+    )
+      .progress(function(logcat_data) {
+        console.log(logcat_data);
+      })
+      .catch(function(err) {
+        console.log('logcat error ' + err);
+      });
+
+    setTimeout(function() {
+      android.shutdown_logcat("1");
+    }, 5000);
+  })
   .catch(function(err) { // catch any error during the procedure
     console.error(err);
   })

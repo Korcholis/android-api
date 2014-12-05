@@ -69,8 +69,7 @@ android_api = module.exports = (function() {
             deferred.resolve(device_found);
           });
       } else {
-        throw new Error("devices array contains no valid items. It should include a list of device IDs, or any of the wildcards first, 1, main, all or *");
-        process.exit();
+        deferred.reject(new Error("devices array contains no valid items. It should include a list of device IDs, or any of the wildcards first, 1, main, all or *"));
       }
     } else if (Array === devices_to_use.constructor) {
       android_api.get_all_devices().then(function(devices_found) {
@@ -95,7 +94,7 @@ android_api = module.exports = (function() {
   */
   function convert_to_json(data) {
     data = "" + data;
-    var results = this.logcat_regex.exec(data);
+    var results = android_api.logcat_regex.exec(data);
     if (!results) {
       return null;
     }
@@ -346,11 +345,17 @@ return {
     },
 
     /**
-    * Take a device and return a stream of its logcat output.
+    * Take a device and return a stream of its logcat output. It returns a
+    * promise the developer can check for any new logcat message. In this case a
+    * resolved promise doesn't contain the logcat output, since it's an ongoing
+    * process. Instead, look at the <code>progress</code> method to receive new
+    * logcat outputs for this device. The <code>then</code> method is
+    * <b>only</b> called on logcat termination.
     *
-    * **Note**: Notice that you can only call logcat on a single device each
-    * time. This is done to prevent a huge memory consumption of the module,
-    * since all logcats are different child processes running at the same time.
+    * <br><b>Note:</b> Notice that you can only call logcat on a single device
+    * each time. This is done to prevent a huge memory consumption of the
+    * module, since all logcats are different child processes running at the
+    * same time.
     *
     * @param {array | string} device - An array with a single device name or a
     * wildcard to fetch devices. In case it is a wildcard, the main device will
@@ -370,46 +375,49 @@ return {
     *  <li><code>array</code> filters. Any filter you want to apply to this
     *  logcat output.</li></ul>
     */
-    logcat : function(device, on_receive_cb, on_end_cb, options) {
+    logcat : function(device, options) {
+      var deferred = q.defer();
+
       options = options || { output : 'long', filters : []};
-      devices_from_var(device, function(device) {
-        device = device[0];
-        var turn_json = false;
-        if ('json' == options.output) {
-          options.output = 'long';
-          turn_json = true;
-        }
-        var logcat_input = spawn("adb", [
-        "-s",
-        device,
-        "logcat",
-        "-v",
-        options.output
-        ], {});
+      devices_from_var(device)
+        .then(function(device) {
+          device = device[0];
+          var turn_json = false;
+          if ('json' == options.output) {
+            options.output = 'long';
+            turn_json = true;
+          }
+          var logcat_input = spawn("adb", [
+          "-s",
+          device,
+          "logcat",
+          "-v",
+          options.output
+          ], {});
 
-        android_api.logcat_spawns[device] = logcat_input;
+          android_api.logcat_spawns[device] = logcat_input;
 
-        logcat_input.stdout.on('data', function(data) {
-          if (turn_json) {
-            var json_content = convert_to_json(data);
-            if (json_content) {
-              on_receive_cb(json_content);
+          logcat_input.stdout.on('data', function(data) {
+            if (turn_json) {
+              var json_content = convert_to_json(data);
+              if (json_content) {
+                deferred.notify(json_content);
+              }
+            } else {
+              deferred.notify(""+data);
             }
-          } else {
-            on_receive_cb(""+data);
-          }
+          });
+
+          logcat_input.stderr.on('data', function(data) {
+            deferred.reject(new Error(data));
+          });
+
+          logcat_input.on('end', function(data) {
+            deferred.resolve();
+          });
         });
 
-        logcat_input.stderr.on('data', function(data) {
-          throw new Error(""+data);
-        });
-
-        logcat_input.on('end', function(data) {
-          if (on_end_cb) {
-            on_end_cb();
-          }
-        });
-      });
+      return deferred.promise;
     },
 
     /**
