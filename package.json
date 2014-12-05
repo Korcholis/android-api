@@ -4,7 +4,6 @@
   "description": "A Node interface for some Android and ADB commands",
   "main": "main.js",
   "scripts": {
-    "test": "make test",
     "docs": "jsdoc -d ./docs/ ."
   },
   "repository": {
