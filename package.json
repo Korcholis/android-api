@@ -4,17 +4,21 @@
   "description": "A Node interface for some Android and ADB commands",
   "main": "android_api.js",
   "scripts": {
-    "docs": "jsdoc -d ./docs/ ."
+    "docs": "jsdoc -d ./docs/ android_api.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://korcholis@bitbucket.org/Korcholis/android-api.git"
+    "url": "https://github.com/Korcholis/android-api"
   },
   "keywords": [
     "android",
     "adb"
   ],
-  "author": "Sergi Juanola <korcholis@gmail.com>",
+  "author": {
+    "name": "Sergi Juanola",
+    "email": "korcholis@gmail.com",
+    "url": "https://www.korcholis.com/"
+  },
   "license": "ISC",
   "dependencies": {
     "q": "2.0.2"
