@@ -26,7 +26,7 @@ android.init() // ensure the adb service is available and started
       android.shutdown_logcat("1")
         .then(function(device_id) {
           console.log('shutdown of ' + device_id);
-        })
+        });
     }, 5000);
     return promise;
   })
