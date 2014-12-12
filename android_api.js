@@ -180,6 +180,11 @@ return {
   logcat_regex : /\[\s+(\d{1,2}\-\d{1,2})\s+(\d{2}:\d{2}:\d{2}\.\d{3})\s+(\d+)\s*:\s*(\d+)\s+([VDIWEFS])\/(.*)\s+\]\s+(.*)/g,
 
   /**
+   * Unfinished regex to parse the targets your Android SDK is able to understand
+   */
+  target_regex : /\s+id: (\d+) or \"([\d\w\-\(\)\:\. ]+)\"\s+Name: ([\w\d \.\(\)]+)\s+Type: ([\w\-]+)\s+(API level: ([\d|L]+)\s+)?(Vendor: ([\d\w\.\- ]+)\s+)?Revision: (\d+)(Description: (.+)\s+)?/gm,
+
+  /**
   * A list of the currently spawned logcats. Remember to finish them some time
   * in the future, or they'll end up eating all the memory!
   */
