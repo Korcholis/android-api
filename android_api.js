@@ -182,7 +182,7 @@ return {
   /**
    * Unfinished regex to parse the targets your Android SDK is able to understand
    */
-  target_regex : /\s+id: (\d+) or \"([\d\w\-\(\)\:\. ]+)\"\s+Name: ([\w\d \.\(\)]+)\s+Type: ([\w\-]+)\s+(API level: ([\d|L]+)\s+)?(Vendor: ([\d\w\.\- ]+)\s+)?Revision: (\d+)(Description: (.+)\s+)?/gm,
+  target_regex : /\s+id: (\d+) or \"([\d\w\-\(\)\:\. ]+)\"\s+Name: ([\w\d \.\(\)]+)\s+Type: ([\w\-]+)\s+(API level: ([\d|L]+)\s+)?(Vendor: ([\d\w\.\- ]+)\s+)?(Revision: (\d+)\s+)?(Description: (.+)\s+)?(Based on (.+)\s+)?/gm,
 
   /**
   * A list of the currently spawned logcats. Remember to finish them some time
