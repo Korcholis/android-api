@@ -172,6 +172,19 @@ android_api = module.exports = (function() {
     return null;
   }
 
+  function run_monkey(device_id, package, actions) {
+    var deferred = q.defer();
+    exec("adb -s " + device_id + " shell monkey -p " + package + " " + actions, function(error, stdout, stderr) {
+      if (error instanceof Error) {
+        deferred.reject(error);
+      } else {
+        deferred.resolve();
+      }
+    });
+
+    return deferred.promise;
+  }
+
 return {
   /**
   * Take this regular expression to parse Logcat output in <code>long</code>
@@ -446,6 +459,22 @@ return {
           delete android_api.logcat_spawns[device];
           deferred.resolve(device);
         }
+      });
+    return deferred.promise;
+  },
+
+  exercise : function(devices_to_use, package, actions, options) {
+    var deferred = q.defer();
+    devices_from_var(devices_to_use)
+      .then(function(devices) {
+        var deferred = q.defer();
+        var monkey_executions = [];
+
+        for (var i = 0; i < devices.length; i++) {
+          monkey_executions.push(run_monkey(devices[i], package, actions));
+        }
+        Q.all(monkey_executions).then(deferred.resolve).catch(deferred.reject);
+        return deferred.promise;
       });
     return deferred.promise;
   }
