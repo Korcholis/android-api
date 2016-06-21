@@ -19,7 +19,7 @@
  * @module android-api
  */
 
-var sys = require('sys');
+var util = require('util');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 var path_utils = require('path');
