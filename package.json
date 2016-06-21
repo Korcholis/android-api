@@ -4,7 +4,8 @@
   "description": "A Node interface for some Android and ADB commands",
   "main": "android_api.js",
   "scripts": {
-    "docs": "jsdoc -d ./docs/ android_api.js"
+    "docs": "jsdoc -d ./docs/ android_api.js",
+    "test": "mocha test --opts test/mocha.opts"
   },
   "repository": {
     "type": "git",
@@ -21,9 +22,12 @@
   },
   "license": "ISC",
   "dependencies": {
+    "coffee-script": "^1.10.0",
     "q": "1.4.1"
   },
   "devDependencies": {
-    "jsdoc": "3.3.0-alpha9"
+    "chai": "^3.5.0",
+    "jsdoc": "3.3.0-alpha9",
+    "mocha": "^2.5.3"
   }
 }
