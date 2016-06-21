@@ -39,7 +39,7 @@ Here it is, also available in the `examples.js` file.
        android.init()
         .then(function() {
           return android.logcat(
-            "1",
+            "default",
             { output : 'json' },
             function(logcat_data) {
               console.log(logcat_data);
@@ -65,7 +65,7 @@ The library currently lets you:
 
 The whole library is JSdoc compliant. If you clone the package, you can run:
 
-    npm run-script docs
+    npm docs
 
 Inside the package folder, and it will create all the documentation structure
 into `./docs/`. You can change the path to where it is stored by modifying the
@@ -80,11 +80,23 @@ wish to collaborate and make them, don't hesitate to make a pull request!
 ##Testing
 
 Awwwww! I started coding blindlessly. I've been testing with my devices but I
-have not deeply tested it, unfortunately. If you wish to start testing it, I'm actually free to suggestions in terms of libraries and procedures.
+have not deeply tested it, unfortunately. 
+
+I made just some bootstrapped tests, the most simple, without mocking (I haven't spent time with that, sorry!). You can check them by running:
+
+    npm test
+
+They're done in mocha, using chai, and coded in Coffescript.
+
+###Tests in Coffeescript and code in Javascript. What's wrong with you?
+
+The library was done in Javascript from the start, and I noticed that moving to Coffee (using the `js2.coffee` site) would make it look worse. Sure, it would need a lot of refactoring, which I'm not willing to do right now.
+
+However, since in some tests there are multiline strings, and tests should be simple and incredibly easy to follow and read (much like code, yeah, but tests should especially!), Coffeescript looked like the natural option.
 
 ##License
 
-Copyright (c) 2014, Sergi Juanola <korcholis@gmail.com>
+Copyright (c) 2014-2016, Sergi Juanola <korcholis@gmail.com>
 
 Permission to use, copy, modify, and/or distribute this software for any purpose
 with or without fee is hereby granted, provided that the above copyright notice
