@@ -38,13 +38,13 @@ android_api = module.exports = (function() {
   * returned.
   *
   * @param {string | array} devices_to_use - Either an array or a wildcard. If
-  * it contains an array, it should have a list of device ids to parse rom the
+  * it contains an array, it should have a list of device ids to parse from the
   * adb devices command. You don't need to have all of them connected, only,
   * since this call will take out the ones not connected, and return a list of
   * all the available devices. If you pass a wildcard, it will translate into a
   * list of ids that match the wildcard. These are:
-  *  <ul><li>"first", "main" or "1": return the first device available, which
-  *  turns to be named "main" by the Android SDK.</li>
+  *  <ul><li>"first", "main", "default" or "1": return the first device available, 
+  *  which turns to be named "main" by the Android SDK.</li>
   *  <li><code>'all'</code> or <code>'*'</code>: return a list of all the
   *  devices connected at the time.</li></ul>
   *
@@ -58,7 +58,7 @@ android_api = module.exports = (function() {
           deferred.resolve(device_found);
         });
     } else if ("string" === typeof devices_to_use) {
-      if (["first", "1", "main"].indexOf(devices_to_use) !== -1) {
+      if (["first", "1", "main", "default"].indexOf(devices_to_use) !== -1) {
         android_api.get_main_device()
           .then(function(device_found) {
             deferred.resolve(device_found);
@@ -69,7 +69,7 @@ android_api = module.exports = (function() {
             deferred.resolve(device_found);
           });
       } else {
-        deferred.reject(new Error("devices array contains no valid items. It should include a list of device IDs, or any of the wildcards first, 1, main, all or *"));
+        deferred.reject(new Error("devices array contains no valid items. It should include a list of device IDs, or any of the wildcards first, 1, main, default, all or *"));
       }
     } else if (Array === devices_to_use.constructor) {
       android_api.get_all_devices().then(function(devices_found) {
@@ -280,6 +280,12 @@ return {
     return promise;
   },
 
+  /**
+   * Take an apk and install it in any device you pass as a parameter. It will look for available devices
+   * based on the ids/wildcards you passed
+   * @param  {string} apk            Path to the APK
+   * @param  {string | array} devices_to_use Either a string or an array, containing the wildcards or ids to fetch
+   */
   install : function(apk, devices_to_use) {
     devices_from_var(devices_to_use, function(devices) {
       for (var i = 0; i < devices.length; i++) {
